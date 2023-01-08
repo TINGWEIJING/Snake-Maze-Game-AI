@@ -1,0 +1,2 @@
+# TODO
+- [ ] Seperate logic & render
