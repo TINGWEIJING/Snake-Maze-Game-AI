@@ -6,11 +6,11 @@ from mechanic import Direction, GameState
 from simple_bot import DistanceController
 
 # initialize map representation
-MAP_HEIGHT = 200  # Y
-MAP_WIDTH = 200  # X
+MAP_HEIGHT = 50  # Y
+MAP_WIDTH = 50  # X
 RENDER_BLOCK_SIZE = 10
 
-GAME_SPEED = 120  # FPS
+GAME_SPEED = 39  # FPS
 
 # Window size
 WINDOW_WIDTH = MAP_WIDTH * RENDER_BLOCK_SIZE
@@ -156,6 +156,7 @@ if __name__ == "__main__":
             game_over(game_state.score)
             game_state.reset_game()
             input_direction = game_state.snake_player.curr_direction
+            controller = DistanceController(game_state=game_state)
             pygame.event.clear()
 
         # displaying score countinuously
