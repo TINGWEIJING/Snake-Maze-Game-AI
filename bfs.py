@@ -2,7 +2,7 @@ from mechanic import (DIRECTION__X_POS_CHANGE, DIRECTION__Y_POS_CHANGE, OPPOSITE
                       Direction, GameState, SnakePlayer)
 import copy
 import math
-
+import random
 
 class BFSController:
     game_state: GameState
@@ -65,5 +65,9 @@ class BFSController:
         if len(self.path) == 0:
             self.bfs()
         if len(self.path) == 0:
-            return Direction.UP
+            random.seed()
+            possible_moves = self.game_state.get_next_possible_directions()
+            print('Random')
+            # Return a random move
+            return possible_moves[random.randint(0, len(possible_moves) - 1)]
         return self.path.pop(0)
