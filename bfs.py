@@ -1,3 +1,4 @@
+import time
 from mechanic import (DIRECTION__X_POS_CHANGE, DIRECTION__Y_POS_CHANGE, OPPOSITE_DIRECTION,
                       Direction, GameState, SnakePlayer)
 import copy
@@ -15,50 +16,50 @@ class BFSController:
         self.path = []
 
     def bfs(self):
+        game_copy = copy.deepcopy(self.game_state)
+        snake_copy = copy.deepcopy(self.snake_player)
         # 1. Get the fruit location from self.game_state.fruit_coord
-        fruit_coord = tuple(self.game_state.fruit_coord)
+        fruit_coord = tuple(game_copy.fruit_coord)
         # 2. Get the current location of the snake from self.snake_player.head_coord()
-        snake_head_coord = tuple(copy.deepcopy(self.snake_player.head_coord))
+        snake_head_coord = tuple(snake_copy.head_coord)
         # 3. Use BFS to find the path to the fruit location, the possible moves can be taken from self.game_state.get_next_possible_directions()
         queue = []
         visited = set()
-        # prev is a 2D array storing Direction
-        prev = [[None for _ in range(self.game_state.map_width)] for _ in range(self.game_state.map_height)]
+        # prev is a dictionary, <cur_game_state, Direction>
+        prev = {}
 
-        queue.append(snake_head_coord)
+        queue.append(game_copy)
         visited.add(snake_head_coord)
-        
+        curr_game: GameState
         while len(queue) > 0:
-            curr_coord = queue.pop(0)
-            if curr_coord == fruit_coord:
+            print(len(queue))
+            curr_game: GameState = queue.pop(0)
+            if curr_game.is_fruit_eaten:
                 break
-            for direction in self.game_state.get_next_possible_directions():
-                next_head_coord_y = curr_coord[0] + DIRECTION__Y_POS_CHANGE[direction]
-                next_head_coord_x = curr_coord[1] + DIRECTION__X_POS_CHANGE[direction]
+            for direction in curr_game.get_next_possible_directions():
+                next_head_coord_y = curr_game.snake_player.head_coord[0] + DIRECTION__Y_POS_CHANGE[direction]
+                next_head_coord_x = curr_game.snake_player.head_coord[1] + DIRECTION__X_POS_CHANGE[direction]
                 next_head_coord = (next_head_coord_y, next_head_coord_x)
-                # Check if the next_head_coord is still within the maze 
-                if next_head_coord_y < 0 or next_head_coord_y >= self.game_state.map_height or next_head_coord_x < 0 or next_head_coord_x >= self.game_state.map_width:
+                next_game = copy.copy(curr_game)
+                next_game.snake_make_next_move(direction)
+                next_game.process_action()
+                # If the next move is invalid (out of maze, touch body)
+                if next_game.check_game_over():
                     continue
-                # If the next coordinate is a wall/obstacle
-                if self.game_state.map_repr[next_head_coord_y][next_head_coord_x] == 1:
-                    continue
-                if next_head_coord not in visited:
-                    visited.add(next_head_coord)
-                    prev[next_head_coord_y][next_head_coord_x] = direction
-                    queue.append(next_head_coord)
+                prev[next_game] = tuple([curr_game, direction])
+                queue.append(next_game)
+                print('add')
 
         # Reconstruct the path
-        curr_coord = fruit_coord
-        while curr_coord != snake_head_coord:
-            if prev[curr_coord[0]][curr_coord[1]] == None:
-                break
-            self.path.append(prev[curr_coord[0]][curr_coord[1]])
-            curr_coord = (curr_coord[0] - DIRECTION__Y_POS_CHANGE[prev[curr_coord[0]][curr_coord[1]]], curr_coord[1] - DIRECTION__X_POS_CHANGE[prev[curr_coord[0]][curr_coord[1]]])
-
+        if curr_game.is_fruit_eaten: # There exist a path to the fruit
+            while curr_game != game_copy:
+                [prev_game_state, prev_direction] = prev[curr_game]
+                self.path.append(prev_direction)
+                curr_game = prev_game_state
         # 4. Save the entire path to the self.path list
         self.path.reverse()
 
-    def compute_next_direction(self, gamestate) -> Direction:
+    def compute_next_direction(self, gamestate: GameState) -> Direction:
         self.game_state = gamestate
         self.snake_player = gamestate.snake_player
         if len(self.path) == 0:
