@@ -59,9 +59,8 @@ class BFSController:
         self.path.reverse()
 
     def compute_next_direction(self, gamestate) -> Direction:
-        virtual_game_state = copy.deepcopy(gamestate)
-        self.game_state = virtual_game_state
-        self.snake_player = virtual_game_state.snake_player
+        self.game_state = gamestate
+        self.snake_player = gamestate.snake_player
         if len(self.path) == 0:
             self.bfs()
         if len(self.path) == 0:
