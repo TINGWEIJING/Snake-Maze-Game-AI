@@ -14,24 +14,13 @@ class BFSController:
         self.snake_player = snake_player if snake_player != None else game_state.snake_player
         self.path = []
 
-    # def create_virtual_snake(self):  # Creates a copy of snake (same size, same position, etc..)
-    #     virtual_snake = copy.deepcopy(self.snake_player)
-    #     virtual_snake.is_virtual_snake = True
-    #     return virtual_snake
-
     def bfs(self):
-        # Idea: 
-        # 1. Get the fruit location from self.game_state.fruit_coord
-        # 2. Get the current location of the snake from self.snake_player.head_coord()
-        # 3. Use BFS to find the path to the fruit location, the possible moves can be taken from self.game_state.get_next_possible_directions()
-        # 4. Save the entire path to the self.path list
-
         # 1. Get the fruit location from self.game_state.fruit_coord
         fruit_coord = tuple(self.game_state.fruit_coord)
         # 2. Get the current location of the snake from self.snake_player.head_coord()
         snake_head_coord = tuple(copy.deepcopy(self.snake_player.head_coord))
         # 3. Use BFS to find the path to the fruit location, the possible moves can be taken from self.game_state.get_next_possible_directions()
-        queue = [] # Storing tuple of current + prev coordinates
+        queue = []
         visited = set()
         # prev is a 2D array storing Direction
         prev = [[None for _ in range(self.game_state.map_width)] for _ in range(self.game_state.map_height)]
