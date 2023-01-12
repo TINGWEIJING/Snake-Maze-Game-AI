@@ -112,7 +112,8 @@ class GameState:
         self.snake_player = SnakePlayer()
         self.is_fruit_eaten = True
         self.score = 0
-
+        self.is_virtual_game = False
+        
         self.spawn_fruit()
 
     def snake_make_next_move(self, input_direction: Direction):
