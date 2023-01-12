@@ -17,6 +17,7 @@ class BFSController:
 
     def bfs(self):
         game_copy = copy.deepcopy(self.game_state)
+        game_copy.is_virtual_game = True
         snake_copy = copy.deepcopy(self.snake_player)
         # 1. Get the fruit location from self.game_state.fruit_coord
         fruit_coord = tuple(game_copy.fruit_coord)
