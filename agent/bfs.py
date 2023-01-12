@@ -1,13 +1,17 @@
-import time
-from mechanic import (DIRECTION__X_POS_CHANGE, DIRECTION__Y_POS_CHANGE, OPPOSITE_DIRECTION,
-                      Direction, GameState, SnakePlayer)
 import copy
 import random
 
-class BFSController:
+from agent.simple_bot import DistanceController
+from game_mechanic.mechanic import (DIRECTION__X_POS_CHANGE,
+                                    DIRECTION__Y_POS_CHANGE,
+                                    OPPOSITE_DIRECTION, Direction, GameState,
+                                    SnakePlayer)
+
+
+class BFSController(DistanceController):
     game_state: GameState
     snake_player: SnakePlayer
-    path: list[Direction]
+    path: 'list[Direction]'
 
     def __init__(self, game_state: GameState, snake_player: SnakePlayer = None) -> None:
         self.game_state = game_state
@@ -61,9 +65,9 @@ class BFSController:
         # Reverse the path
         self.path.reverse()
 
-    def compute_next_direction(self, gamestate: GameState) -> Direction:
-        self.game_state = gamestate
-        self.snake_player = gamestate.snake_player
+    def compute_next_direction(self, gamestate: GameState = None) -> Direction:
+        # self.game_state = gamestate
+        # self.snake_player = gamestate.snake_player
         if len(self.path) == 0:
             self.bfs()
         if len(self.path) == 0:
@@ -73,3 +77,7 @@ class BFSController:
             # Return a random move
             return possible_moves[random.randint(0, len(possible_moves) - 1)]
         return self.path.pop(0)
+
+    def reset(self, game_state: GameState, snake_player: SnakePlayer = None):
+        super().reset(game_state, snake_player)
+        self.path = []
