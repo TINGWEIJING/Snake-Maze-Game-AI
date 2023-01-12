@@ -70,12 +70,12 @@ class GameGUI:
 
             # * Game Over Checking
             if is_game_over:
-                print(f"SCORE: {game_state.score}")
+                print(f"SCORE: {self.game_state.score}")
                 # game_over(game_state.score)
-                game_state.reset_game()
+                self.game_state.reset_game()
                 if self.controller != None:
                     self.controller.reset(game_state=self.game_state)
-                input_direction = game_state.snake_player.curr_direction
+                input_direction = self.game_state.snake_player.curr_direction
                 pygame.event.clear()
 
             # Refresh game screen
@@ -193,8 +193,8 @@ if __name__ == "__main__":
     game_gui = GameGUI(
         game_state=game_state,
         # game_speed=30,
-        controller=DeepQController(game_state=game_state, model_file_name='./model/2023_01_12_172229.pt'),
+        # controller=DeepQController(game_state=game_state, model_file_name='./model/2023_01_12_172229.pt'),
         # controller=BFSController(game_state=game_state),
-        # controller=DistanceController(game_state=game_state),
+        controller=DistanceController(game_state=game_state),
     )
     game_gui.run()
