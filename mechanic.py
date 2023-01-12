@@ -80,6 +80,7 @@ class GameState:
     score: int
 
     is_fruit_eaten: bool
+    is_virtual_game: bool # For simulating the game, and to suppress the hit wall message
 
     def __init__(self,
                  map_height: int,
@@ -111,7 +112,8 @@ class GameState:
         self.snake_player = SnakePlayer()
         self.is_fruit_eaten = True
         self.score = 0
-
+        self.is_virtual_game = False
+        
         self.spawn_fruit()
 
     def snake_make_next_move(self, input_direction: Direction):
@@ -169,21 +171,25 @@ class GameState:
 
         # hit surrounding wall
         if snake_head_coord[0] < 0 or snake_head_coord[0] >= self.map_height:
-            print("Hit up down boundaries")
+            if not self.is_virtual_game:
+                print("Hit up down boundaries")
             return True
         if snake_head_coord[1] < 0 or snake_head_coord[1] >= self.map_width:
-            print("Hit left right boundaries")
+            if not self.is_virtual_game:
+                print("Hit left right boundaries")
             return True
 
         # hit any wall
         if self.map_repr[snake_head_coord[0]][snake_head_coord[1]] == 1:
-            print("Hit walls")
+            if not self.is_virtual_game:
+                print("Hit walls")
             return True
 
         # eat itself
         for tail_y, tail_x in self.snake_player.tail_coords:
             if snake_head_coord[0] == tail_y and snake_head_coord[1] == tail_x:
-                print("Hit itself")
+                if not self.is_virtual_game:
+                    print("Hit itself")
                 return True
 
         return False
