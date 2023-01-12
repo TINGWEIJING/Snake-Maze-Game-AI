@@ -1,10 +1,10 @@
-import time
+from agent.deep_q import train
 
 import pygame
 
-from mechanic import Direction, GameState
-from simple_bot import DistanceController
-from bfs import BFSController
+from game_mechanic.mechanic import Direction, GameState
+from agent.simple_bot import DistanceController
+from agent.bfs import BFSController
 
 # initialize map representation
 MAP_HEIGHT = 50  # Y
@@ -86,6 +86,8 @@ def game_over(score: int):
 
 
 if __name__ == "__main__":
+    train()
+    
     # Main Function
     game_state = GameState(
         map_height=MAP_HEIGHT,

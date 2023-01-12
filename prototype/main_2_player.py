@@ -2,7 +2,7 @@ import time
 
 import pygame
 
-from mechanic import Direction, GameState
+from game_mechanic.mechanic import Direction, GameState
 from simple_bot import DistanceController
 
 # initialize map representation

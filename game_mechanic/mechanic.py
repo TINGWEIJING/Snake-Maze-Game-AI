@@ -2,6 +2,8 @@ import copy
 import random
 from enum import Enum
 
+import numpy as np
+
 
 class Direction(Enum):
     UP = 1
@@ -51,15 +53,38 @@ DIRECTION__Y_POS_CHANGE = {
 class SnakePlayer:
     body_coords: 'list[list[int]]'
     curr_direction: Direction
+    snake_repr_np: np.ndarray
 
-    def __init__(self) -> None:
+    def __init__(self,
+                 map_height: int,
+                 map_width: int,
+                 ) -> None:
+        # self.body_coords = [
+        #     [10, 5],  # head
+        #     [9, 5],
+        #     [8, 5],
+        #     [7, 5]
+        # ]
+        center_y = map_height // 2
+        center_x = map_width // 2
         self.body_coords = [
-            [10, 5],  # head
-            [9, 5],
-            [8, 5],
-            [7, 5]
+            [center_y, center_x],  # head
+            [center_y - 1, center_x],
+            [center_y - 2, center_x],
+            [center_y - 3, center_x]
         ]
         self.curr_direction = Direction.DOWN
+        self.snake_repr_np = np.zeros(shape=(map_height, map_width)).astype(int)
+
+    def create_new_head(self,
+                        coord: 'list[int]',
+                        ):
+        self.body_coords.insert(0, coord)
+        self.snake_repr_np[coord[0], coord[1]] = 1
+
+    def remove_last_tail(self):
+        last_tail_coord = self.body_coords.pop()
+        self.snake_repr_np[last_tail_coord[0], last_tail_coord[1]] = 0
 
     @property
     def head_coord(self):
@@ -73,14 +98,15 @@ class SnakePlayer:
 class GameState:
     map_height: int
     map_width: int
-    map_repr: 'list[list[int]]'
+    map_repr_np: np.ndarray
     wall_coords: 'list[list[int]]'
     snake_player: SnakePlayer
     fruit_coord: 'list[int]'
     score: int
 
     is_fruit_eaten: bool
-    is_virtual_game: bool # For simulating the game, and to suppress the hit wall message
+    is_virtual_game: bool  # For simulating the game, and to suppress the hit wall message
+    frame_iteration: int
 
     def __init__(self,
                  map_height: int,
@@ -94,26 +120,26 @@ class GameState:
             # check height & width
             self.map_height = len(lines)
             self.map_width = len(lines[0].strip())
-            self.map_repr = [[0]*self.map_width for _ in range(self.map_height)]
+            self.map_repr_np = np.zeros(shape=(self.map_height, self.map_width)).astype(int)
 
             for y in range(len(lines)):
                 line = lines[y].strip()
                 for x in range(len(line)):
                     is_wall_val = int(line[x])
-                    self.map_repr[y][x] = is_wall_val
+                    self.map_repr_np[y, x] = is_wall_val
                     # save wall coord
                     if is_wall_val == 1:
                         self.wall_coords.append([y, x])
         else:
             self.map_height = map_height
             self.map_width = map_width
-            self.map_repr = [[0]*map_width]*map_height
+            self.map_repr_np = np.zeros(shape=(self.map_height, self.map_width)).astype(int)
 
-        self.snake_player = SnakePlayer()
+        self.snake_player = SnakePlayer(map_height=self.map_height, map_width=self.map_width)
         self.is_fruit_eaten = True
         self.score = 0
         self.is_virtual_game = False
-        
+        self.frame_iteration = 0
         self.spawn_fruit()
 
     def snake_make_next_move(self, input_direction: Direction):
@@ -126,7 +152,7 @@ class GameState:
         snake_new_head_coord[0] += DIRECTION__Y_POS_CHANGE[snake_direction]  # Y
         snake_new_head_coord[1] += DIRECTION__X_POS_CHANGE[snake_direction]  # X
 
-        self.snake_player.body_coords.insert(0, snake_new_head_coord)
+        self.snake_player.create_new_head(coord=snake_new_head_coord)
         self.snake_player.curr_direction = snake_direction
         return snake_direction
 
@@ -144,7 +170,9 @@ class GameState:
             self.score += 10
             self.is_fruit_eaten = True
         else:
-            self.snake_player.body_coords.pop()
+            self.snake_player.remove_last_tail()
+
+        self.frame_iteration += 1
 
     def spawn_fruit(self):
         if self.is_fruit_eaten:
@@ -171,32 +199,48 @@ class GameState:
 
         # hit surrounding wall
         if snake_head_coord[0] < 0 or snake_head_coord[0] >= self.map_height:
-            if not self.is_virtual_game:
-                print("Hit up down boundaries")
             return True
         if snake_head_coord[1] < 0 or snake_head_coord[1] >= self.map_width:
-            if not self.is_virtual_game:
-                print("Hit left right boundaries")
             return True
 
         # hit any wall
-        if self.map_repr[snake_head_coord[0]][snake_head_coord[1]] == 1:
-            if not self.is_virtual_game:
-                print("Hit walls")
+        if self.map_repr_np[snake_head_coord[0], snake_head_coord[1]] == 1:
             return True
 
         # eat itself
         for tail_y, tail_x in self.snake_player.tail_coords:
             if snake_head_coord[0] == tail_y and snake_head_coord[1] == tail_x:
-                if not self.is_virtual_game:
-                    print("Hit itself")
                 return True
 
         return False
 
     def reset_game(self):
-        self.snake_player = SnakePlayer()
+        self.snake_player = SnakePlayer(map_height=self.map_height, map_width=self.map_width)
         self.is_fruit_eaten = True
         self.score = 0
-
+        self.frame_iteration = 0
         self.spawn_fruit()
+
+    def is_collision(self, coord: 'list[int]'):
+        snake_head_coord = coord
+
+        # hit surrounding wall
+        if snake_head_coord[0] < 0 or snake_head_coord[0] >= self.map_height:
+            # print("Hit up down boundaries")
+            return True
+        if snake_head_coord[1] < 0 or snake_head_coord[1] >= self.map_width:
+            # print("Hit left right boundaries")
+            return True
+
+        # hit any wall
+        if self.map_repr_np[snake_head_coord[0], snake_head_coord[1]] == 1:
+            # print("Hit walls")
+            return True
+
+        # eat itself
+        for tail_y, tail_x in self.snake_player.tail_coords:
+            if snake_head_coord[0] == tail_y and snake_head_coord[1] == tail_x:
+                # print("Hit itself")
+                return True
+
+        return False

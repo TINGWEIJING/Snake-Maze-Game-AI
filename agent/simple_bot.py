@@ -1,7 +1,9 @@
-from mechanic import (DIRECTION__X_POS_CHANGE, DIRECTION__Y_POS_CHANGE,
-                      Direction, GameState, SnakePlayer)
 import copy
 import math
+
+from game_mechanic.mechanic import (DIRECTION__X_POS_CHANGE,
+                                    DIRECTION__Y_POS_CHANGE, Direction,
+                                    GameState, SnakePlayer)
 
 
 class DistanceController:
@@ -28,7 +30,7 @@ class DistanceController:
             is_direction_bad = False
 
             # skip if moving towards any wall
-            if self.game_state.map_repr[next_head_coord_y][next_head_coord_x] == 1:
+            if self.game_state.map_repr_np[next_head_coord_y, next_head_coord_x] == 1:
                 continue
 
             # skip if moving towards any tails
@@ -47,3 +49,7 @@ class DistanceController:
                     min_score_direction = direction
 
         return min_score_direction
+
+    def reset(self, game_state: GameState, snake_player: SnakePlayer = None):
+        self.game_state = game_state
+        self.snake_player = snake_player if snake_player != None else game_state.snake_player
