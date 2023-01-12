@@ -31,8 +31,8 @@ class BFSController:
         queue.append(game_copy)
         visited.add(snake_head_coord)
         curr_game: GameState
+        print('Begin BFS for fruit coordinate', fruit_coord)
         while len(queue) > 0:
-            print(len(queue))
             curr_game: GameState = queue.pop(0)
             if curr_game.is_fruit_eaten:
                 break
@@ -40,16 +40,18 @@ class BFSController:
                 next_head_coord_y = curr_game.snake_player.head_coord[0] + DIRECTION__Y_POS_CHANGE[direction]
                 next_head_coord_x = curr_game.snake_player.head_coord[1] + DIRECTION__X_POS_CHANGE[direction]
                 next_head_coord = (next_head_coord_y, next_head_coord_x)
-                next_game = copy.copy(curr_game)
+                if next_head_coord in visited:
+                    continue
+                next_game = copy.deepcopy(curr_game)
                 next_game.snake_make_next_move(direction)
                 next_game.process_action()
                 # If the next move is invalid (out of maze, touch body)
                 if next_game.check_game_over():
+                    del next_game
                     continue
                 prev[next_game] = tuple([curr_game, direction])
                 queue.append(next_game)
-                print('add')
-
+                visited.add(next_head_coord)
         # Reconstruct the path
         if curr_game.is_fruit_eaten: # There exist a path to the fruit
             while curr_game != game_copy:
