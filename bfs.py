@@ -2,7 +2,6 @@ import time
 from mechanic import (DIRECTION__X_POS_CHANGE, DIRECTION__Y_POS_CHANGE, OPPOSITE_DIRECTION,
                       Direction, GameState, SnakePlayer)
 import copy
-import math
 import random
 
 class BFSController:
@@ -19,11 +18,11 @@ class BFSController:
         game_copy = copy.deepcopy(self.game_state)
         game_copy.is_virtual_game = True
         snake_copy = copy.deepcopy(self.snake_player)
-        # 1. Get the fruit location from self.game_state.fruit_coord
+        # Get the fruit location
         fruit_coord = tuple(game_copy.fruit_coord)
-        # 2. Get the current location of the snake from self.snake_player.head_coord()
+        # Get the current location of the snake
         snake_head_coord = tuple(snake_copy.head_coord)
-        # 3. Use BFS to find the path to the fruit location, the possible moves can be taken from self.game_state.get_next_possible_directions()
+
         queue = []
         visited = set()
         # prev is a dictionary, <cur_game_state, Direction>
@@ -59,7 +58,7 @@ class BFSController:
                 [prev_game_state, prev_direction] = prev[curr_game]
                 self.path.append(prev_direction)
                 curr_game = prev_game_state
-        # 4. Save the entire path to the self.path list
+        # Reverse the path
         self.path.reverse()
 
     def compute_next_direction(self, gamestate: GameState) -> Direction:
