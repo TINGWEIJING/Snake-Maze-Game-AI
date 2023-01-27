@@ -1,4 +1,5 @@
 import copy
+import math
 import random
 from enum import Enum
 
@@ -59,20 +60,20 @@ class SnakePlayer:
                  map_height: int,
                  map_width: int,
                  ) -> None:
-        # self.body_coords = [
-        #     [10, 5],  # head
-        #     [9, 5],
-        #     [8, 5],
-        #     [7, 5]
-        # ]
-        center_y = map_height // 2
-        center_x = map_width // 2
         self.body_coords = [
-            [center_y, center_x],  # head
-            [center_y - 1, center_x],
-            [center_y - 2, center_x],
-            [center_y - 3, center_x]
+            [2, 5],  # head
+            [3, 5],
+            [4, 5],
+            [5, 5]
         ]
+        # center_y = map_height // 2
+        # center_x = map_width // 2
+        # self.body_coords = [
+        #     [center_y, center_x],  # head
+        #     [center_y - 1, center_x],
+        #     [center_y - 2, center_x],
+        #     [center_y - 3, center_x]
+        # ]
         self.curr_direction = Direction.DOWN
         self.snake_repr_np = np.zeros(shape=(map_height, map_width)).astype(int)
 
@@ -106,12 +107,15 @@ class GameState:
 
     is_fruit_eaten: bool
     is_virtual_game: bool  # For simulating the game, and to suppress the hit wall message
+    max_frame_iteration: int
     frame_iteration: int
 
     def __init__(self,
                  map_height: int,
                  map_width: int,
-                 map_file: str = None) -> None:
+                 map_file: str = None,
+                 max_frame_iteration: int = -1,
+                 ) -> None:
         self.wall_coords = []
         if map_file != None:
             lines: 'list[str]' = []
@@ -139,6 +143,10 @@ class GameState:
         self.is_fruit_eaten = True
         self.score = 0
         self.is_virtual_game = False
+        if max_frame_iteration == 0:
+            self.max_frame_iteration = int(math.sqrt(self.map_width ** 2 + self.map_height ** 2) * 1.5)
+        else:
+            self.max_frame_iteration = max_frame_iteration
         self.frame_iteration = 0
         self.spawn_fruit()
 
@@ -169,6 +177,7 @@ class GameState:
         if snake_head_coord[0] == self.fruit_coord[0] and snake_head_coord[1] == self.fruit_coord[1]:
             self.score += 10
             self.is_fruit_eaten = True
+            self.frame_iteration = -1
         else:
             self.snake_player.remove_last_tail()
 
@@ -211,6 +220,10 @@ class GameState:
         for tail_y, tail_x in self.snake_player.tail_coords:
             if snake_head_coord[0] == tail_y and snake_head_coord[1] == tail_x:
                 return True
+
+        # trap
+        if self.max_frame_iteration > 0 and self.frame_iteration >= self.max_frame_iteration:
+            return True
 
         return False
 

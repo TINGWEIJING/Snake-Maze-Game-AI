@@ -9,9 +9,9 @@ from agent.bfs import BFSController
 # initialize map representation
 MAP_HEIGHT = 50  # Y
 MAP_WIDTH = 50  # X
-RENDER_BLOCK_SIZE = 10
+RENDER_BLOCK_SIZE = 5
 
-GAME_SPEED = 60  # FPS
+GAME_SPEED = 120  # FPS
 
 # Window size
 WINDOW_WIDTH = MAP_WIDTH * RENDER_BLOCK_SIZE
@@ -86,7 +86,7 @@ def game_over(score: int):
 
 
 if __name__ == "__main__":
-    train()
+    # train()
     
     # Main Function
     game_state = GameState(
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         map_width=MAP_WIDTH,
         map_file='./map/dummy_map.txt',
     )
-    controller = BFSController(game_state=game_state)
+    controller = DistanceController(game_state=game_state)
     input_direction = game_state.snake_player.curr_direction
 
     WINDOW_WIDTH = game_state.map_width * RENDER_BLOCK_SIZE
@@ -115,7 +115,7 @@ if __name__ == "__main__":
                 if event.key == pygame.K_RIGHT:
                     input_direction = Direction.RIGHT
 
-        input_direction = controller.compute_next_direction(game_state)
+        input_direction = controller.compute_next_direction()
 
         # * Game Logic
         game_state.snake_make_next_move(input_direction=input_direction)
@@ -159,7 +159,7 @@ if __name__ == "__main__":
             game_over(game_state.score)
             game_state.reset_game()
             input_direction = game_state.snake_player.curr_direction
-            controller = BFSController(game_state=game_state)
+            controller = DistanceController(game_state=game_state)
             pygame.event.clear()
 
         # displaying score countinuously

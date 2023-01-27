@@ -7,12 +7,38 @@ import pygame
 from agent.deep_q import (CIRCULAR_DIRECTION_INDEX, CIRCULAR_DIRECTION_LIST,
                           DeepQAgent)
 from game import GameGUI
-from game_mechanic.mechanic import Direction, GameState
+from game_mechanic.mechanic import GameState
 from helper.helper import plot
+from param import get_deep_q_learning_parser
 
 if __name__ == "__main__":
+    parser = get_deep_q_learning_parser()
+    args = parser.parse_args()
+    map_height: int = args.map_height
+    map_width: int = args.map_width
+    map_file: str = args.map_file
+    game_speed: int = args.game_speed
+    render_block_size: int = args.render_block_size
+    agent: str = args.agent
+    model_file: str = args.model_file
+    rounds: int = args.rounds
+    max_frame_iteration: int = args.max_frame_iteration
+
     now = datetime.now()
-    model_file_name = f'{now.strftime("%_Y_%m_%d_%H%M%S")}.pt'
+    model_file_name = f'{now.strftime("%Y_%m_%d_%H%M%S")}.pt'
+
+    # * Print args
+    print("="*20)
+    print(f"map_height: {map_height}")
+    print(f"map_width: {map_width}")
+    print(f"map_file: {map_file}")
+    print(f"game_speed: {game_speed}")
+    print(f"render_block_size: {render_block_size}")
+    print(f"agent: {agent}")
+    print(f"model_file: {model_file}")
+    print(f"rounds: {rounds}")
+    print(f"max_frame_iteration: {max_frame_iteration}")
+    print("="*20)
 
     _game_state = GameState(
         map_height=36,
@@ -21,6 +47,7 @@ if __name__ == "__main__":
     )
     game_gui = GameGUI(
         game_state=_game_state,
+        render_block_size=4,
         # game_speed=30,
         # controller=DistanceController(game_state=game_state)
     )
@@ -32,7 +59,7 @@ if __name__ == "__main__":
     agent = DeepQAgent()
 
     input_direction = game_gui.game_state.snake_player.curr_direction
-    print(input_direction)
+
     while True:
         # * Game Control
         # get old state
