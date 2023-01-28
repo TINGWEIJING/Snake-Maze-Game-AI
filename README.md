@@ -5,6 +5,7 @@
     - [Example](#example)
   - [Deep Q-Learning Training](#deep-q-learning-training)
     - [Example](#example-1)
+  - [Map Generation](#map-generation)
 
 ## Quick Start
 1. Create python environment.
@@ -91,3 +92,6 @@ python train_ai.py --output_model_file "./model/custom_model.pt" --map_file "./m
 # Fine tuning
 python train_ai.py --output_model_file "./model/tuned_model.pt" --load_model_file "./model/2023_01_12_175446.pt" --map_file "./map/CPU_45.txt"
 ```
+
+## Map Generation
+Run any of the Jupyter notebook files under `./map_generator` to generate specific map.
