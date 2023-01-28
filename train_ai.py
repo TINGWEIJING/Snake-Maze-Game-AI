@@ -21,6 +21,7 @@ if __name__ == "__main__":
     game_speed: int = args.game_speed
     render_block_size: int = args.render_block_size
     output_model_file: str = args.output_model_file
+    load_model_file: str = args.load_model_file
     rounds: int = args.rounds
 
     if len(output_model_file.strip()) < 1:
@@ -37,6 +38,7 @@ if __name__ == "__main__":
     print(f"game_speed: {game_speed}")
     print(f"render_block_size: {render_block_size}")
     print(f"output_model_file: {output_model_file}")
+    print(f"load_model_file: {load_model_file}")
     print(f"rounds: {rounds}")
     print("="*20)
 
@@ -56,7 +58,7 @@ if __name__ == "__main__":
     plot_mean_scores = []
     total_score = 0
     record = 0
-    agent = DeepQAgent()
+    agent = DeepQAgent(load_model_file=load_model_file)
 
     input_direction = game_gui.game_state.snake_player.curr_direction
 

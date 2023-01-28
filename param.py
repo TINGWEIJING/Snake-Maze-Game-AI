@@ -75,6 +75,10 @@ def get_deep_q_learning_parser():
                         type=str,
                         default="",
                         )
+    parser.add_argument("--load_model_file",
+                        type=str,
+                        default="",
+                        )
     parser.add_argument("--rounds",
                         type=int,
                         default=-1,

@@ -130,12 +130,16 @@ class DeepQController(DistanceController):
 
 class DeepQAgent():
 
-    def __init__(self):
+    def __init__(self, load_model_file: str = ''):
         self.n_games = 0
         self.epsilon = 0  # randomness
         self.gamma = 0.9  # discount rate
         self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
         self.model = Linear_QNet(11, 256, 3)
+        # load model
+        if len(load_model_file.strip()) > 0:
+            self.model.load_state_dict(torch.load(load_model_file))
+            print(f'Loaded {load_model_file}')
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
     def get_state(self, game_state: GameState):
@@ -223,9 +227,7 @@ def train():
     total_score = 0
     record = 0
     agent = DeepQAgent()
-    # game = SnakeGameAI(
-    #     map_file='./map/simple_map.txt',
-    # )
+
     game_state = GameState(
         map_height=50,
         map_width=50,
