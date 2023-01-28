@@ -1,8 +1,11 @@
+import os
+from pathlib import Path
+
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
-import os
+import torch.optim as optim
+
 
 class Linear_QNet(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -15,13 +18,12 @@ class Linear_QNet(nn.Module):
         x = self.linear2(x)
         return x
 
-    def save(self, file_name='model.pth'):
-        model_folder_path = './model'
-        if not os.path.exists(model_folder_path):
-            os.makedirs(model_folder_path)
+    def save(self, output_model_file='model.pth'):
+        output_model_path = Path(output_model_file)
+        output_model_dir = output_model_path.parent.absolute()
+        output_model_dir.mkdir(exist_ok=True)
 
-        file_name = os.path.join(model_folder_path, file_name)
-        torch.save(self.state_dict(), file_name)
+        torch.save(self.state_dict(), output_model_file)
 
 
 class QTrainer:

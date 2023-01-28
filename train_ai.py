@@ -1,5 +1,6 @@
 import math
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pygame
@@ -19,13 +20,14 @@ if __name__ == "__main__":
     map_file: str = args.map_file
     game_speed: int = args.game_speed
     render_block_size: int = args.render_block_size
-    agent: str = args.agent
-    model_file: str = args.model_file
+    output_model_file: str = args.output_model_file
     rounds: int = args.rounds
-    max_frame_iteration: int = args.max_frame_iteration
 
-    now = datetime.now()
-    model_file_name = f'{now.strftime("%Y_%m_%d_%H%M%S")}.pt'
+    if len(output_model_file.strip()) < 1:
+        now = datetime.now()
+        output_model_dir = Path('./model/').absolute()
+        output_model_dir.mkdir(exist_ok=True)
+        output_model_file = str(output_model_dir / f'{now.strftime("%Y_%m_%d_%H%M%S")}.pt')
 
     # * Print args
     print("="*20)
@@ -34,22 +36,20 @@ if __name__ == "__main__":
     print(f"map_file: {map_file}")
     print(f"game_speed: {game_speed}")
     print(f"render_block_size: {render_block_size}")
-    print(f"agent: {agent}")
-    print(f"model_file: {model_file}")
+    print(f"output_model_file: {output_model_file}")
     print(f"rounds: {rounds}")
-    print(f"max_frame_iteration: {max_frame_iteration}")
     print("="*20)
 
     _game_state = GameState(
-        map_height=36,
-        map_width=36,
-        map_file='./map/dummy_map.txt',
+        map_height=map_height,
+        map_width=map_width,
+        map_file=map_file,
     )
     game_gui = GameGUI(
         game_state=_game_state,
-        render_block_size=4,
-        # game_speed=30,
-        # controller=DistanceController(game_state=game_state)
+        render_block_size=render_block_size,
+        game_speed=game_speed,
+        max_round=rounds,
     )
 
     plot_scores = []
@@ -64,6 +64,8 @@ if __name__ == "__main__":
         # * Game Control
         # get old state
         state_old = agent.get_state(game_gui.game_state)
+
+        pygame.event.get() # ! Fix game hang in Windows OS
 
         # get move
         final_move = agent.get_action(state_old)
@@ -128,7 +130,7 @@ if __name__ == "__main__":
 
             if score > record:
                 record = score
-                agent.model.save(file_name=model_file_name)
+                agent.model.save(output_model_file=output_model_file)
 
             print('Game', agent.n_games, 'Score', score, 'Record:', record)
 
