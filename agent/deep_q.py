@@ -45,6 +45,9 @@ FPS = pygame.time.Clock()
 
 class DeepQController(DistanceController):
     model: Linear_QNet
+    trace_dict: dict['int', 'int']
+    prev_repeat_count: int
+    is_repeating_count: int
 
     def __init__(self,
                  model_file_name: str,
@@ -53,9 +56,17 @@ class DeepQController(DistanceController):
                  ) -> None:
         super().__init__(game_state, snake_player)
 
-        self.model = Linear_QNet(11, 256, 3)
+        self.model = Linear_QNet(12, 256, 3)
         self.model.load_state_dict(torch.load(model_file_name))
         self.model.eval()
+        self.trace_dict: dict['int', 'int'] = {}
+        self.prev_repeat_count = 0
+        self.is_repeating_count = 0
+
+    def clear_trace(self):
+        self.trace_dict = {}
+        self.prev_repeat_count = 0
+        self.is_repeating_count = 0
 
     def get_state(self):
         game_state = self.game_state
@@ -99,7 +110,10 @@ class DeepQController(DistanceController):
             game_state.fruit_coord[1] < game_state.snake_player.head_coord[1],  # food left
             game_state.fruit_coord[1] > game_state.snake_player.head_coord[1],  # food right
             game_state.fruit_coord[0] < game_state.snake_player.head_coord[0],  # food up
-            game_state.fruit_coord[0] > game_state.snake_player.head_coord[0]  # food down
+            game_state.fruit_coord[0] > game_state.snake_player.head_coord[0],  # food down
+
+            # Repeat step
+            self.is_repeating_count,
         ]
 
         return np.array(state, dtype=int)
@@ -124,8 +138,36 @@ class DeepQController(DistanceController):
 
         return input_direction
 
+    def trace_step(self):
+        '''
+        Call this in self.post_processing()
+        '''
+        self.prev_repeat_count = sum(self.trace_dict.values())
+        # get key value
+        map_height = self.game_state.map_height
+        map_width = self.game_state.map_width
+        head_coord = self.game_state.snake_player.head_coord
+
+        key_val = (head_coord[0] * map_width) + head_coord[1]
+
+        self.trace_dict.setdefault(key_val, -1)
+        self.trace_dict[key_val] += 1
+
+    def post_processing(self):
+        self.trace_step()
+        curr_repeat_count = 0
+        if self.game_state.is_fruit_eaten:
+            self.clear_trace()
+        else:
+            curr_repeat_count = sum(self.trace_dict.values())
+            if self.prev_repeat_count < curr_repeat_count:
+                self.is_repeating_count += 1
+            else:
+                self.is_repeating_count = 0
+
     def reset(self, game_state: GameState, snake_player: SnakePlayer = None):
         super().reset(game_state, snake_player)
+        self.clear_trace()
 
 
 class DeepQAgent():
@@ -135,12 +177,35 @@ class DeepQAgent():
         self.epsilon = 0  # randomness
         self.gamma = 0.9  # discount rate
         self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
-        self.model = Linear_QNet(11, 256, 3)
+        self.model = Linear_QNet(12, 256, 3)
         # load model
         if len(load_model_file.strip()) > 0:
             self.model.load_state_dict(torch.load(load_model_file))
             print(f'Loaded {load_model_file}')
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+        self.trace_dict: dict['int', 'int'] = {}
+        self.prev_repeat_count = 0
+        self.is_repeating_count = 0
+
+    def trace_step(self, game_state: GameState):
+        '''
+        Call this after game_state.process_action()
+        '''
+        self.prev_repeat_count = sum(self.trace_dict.values())
+        # get key value
+        map_height = game_state.map_height
+        map_width = game_state.map_width
+        head_coord = game_state.snake_player.head_coord
+
+        key_val = (head_coord[0] * map_width) + head_coord[1]
+
+        self.trace_dict.setdefault(key_val, -1)
+        self.trace_dict[key_val] += 1
+
+    def clear_trace(self):
+        self.trace_dict = {}
+        self.prev_repeat_count = 0
+        self.is_repeating_count = 0
 
     def get_state(self, game_state: GameState):
         head = game_state.snake_player.head_coord
@@ -183,10 +248,27 @@ class DeepQAgent():
             game_state.fruit_coord[1] < game_state.snake_player.head_coord[1],  # food left
             game_state.fruit_coord[1] > game_state.snake_player.head_coord[1],  # food right
             game_state.fruit_coord[0] < game_state.snake_player.head_coord[0],  # food up
-            game_state.fruit_coord[0] > game_state.snake_player.head_coord[0]  # food down
+            game_state.fruit_coord[0] > game_state.snake_player.head_coord[0],  # food down
+
+            # Repeat step
+            self.is_repeating_count,
         ]
 
         return np.array(state, dtype=int)
+
+    def post_processing(self, game_state: GameState):
+        curr_repeat_count = 0
+        if game_state.is_fruit_eaten:
+            self.clear_trace()
+        else:
+            curr_repeat_count = sum(self.trace_dict.values())
+            if self.prev_repeat_count < curr_repeat_count:
+                self.is_repeating_count += 1
+            else:
+                self.is_repeating_count = 0
+        # print(f'prev_repeat_count: {self.prev_repeat_count}')
+        # print(f'curr_repeat_count: {curr_repeat_count}')
+        # print(f'is_repeating_count: {self.is_repeating_count}')
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))  # popleft if MAX_MEMORY is reached

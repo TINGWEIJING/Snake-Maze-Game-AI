@@ -67,7 +67,7 @@ if __name__ == "__main__":
         # get old state
         state_old = agent.get_state(game_gui.game_state)
 
-        pygame.event.get() # ! Fix game hang in Windows OS
+        pygame.event.get()  # ! Fix game hang in Windows OS
 
         # get move
         final_move = agent.get_action(state_old)
@@ -85,13 +85,20 @@ if __name__ == "__main__":
         game_gui.game_state.snake_make_next_move(input_direction=input_direction)
         game_gui.game_state.process_action()
 
+        # * Trace
+        agent.trace_step(game_state=game_gui.game_state)
+
         done = game_gui.game_state.check_game_over() or game_gui.game_state.frame_iteration > 100*len(game_gui.game_state.snake_player.body_coords)
         score = game_gui.game_state.score
         reward = 0
+
+        # * Post Trace
+        agent.post_processing(game_state=game_gui.game_state)
+
         if done:
             reward = -10
         elif game_gui.game_state.is_fruit_eaten:
-            reward = 10
+            reward = 15
         else:
             head_coord = game_gui.game_state.snake_player.head_coord
             prev_head_coord = game_gui.game_state.snake_player.body_coords[1]
@@ -101,7 +108,12 @@ if __name__ == "__main__":
             prev_dist = math.dist(prev_head_coord,
                                   fruit_coord,)
             # print(f"dist_to_fruit: {dist_to_fruit}")
-            reward = -1 if prev_dist < curr_dist else 0
+            # check is distance is decrease
+            if prev_dist < curr_dist:
+                reward = -2
+            else:
+                # repeat step penalty
+                reward -= max(0.5, agent.is_repeating_count*0.1)
 
         state_new = agent.get_state(game_gui.game_state)
 
@@ -130,6 +142,8 @@ if __name__ == "__main__":
             agent.n_games += 1
             agent.train_long_memory()
 
+            agent.clear_trace()
+
             if score > record:
                 record = score
                 agent.model.save(output_model_file=output_model_file)
@@ -140,7 +154,14 @@ if __name__ == "__main__":
             total_score += score
             mean_score = total_score / agent.n_games
             plot_mean_scores.append(mean_score)
-            plot(plot_scores, plot_mean_scores)
+            plot(plot_scores, plot_mean_scores, output_model_file=output_model_file)
+
+            if agent.n_games >= rounds and rounds >= 0:
+                # deactivating pygame library
+                pygame.quit()
+
+                # quit the program
+                quit()
 
         # Refresh game screen
         pygame.display.update()

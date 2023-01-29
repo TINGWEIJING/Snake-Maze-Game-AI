@@ -61,10 +61,10 @@ class SnakePlayer:
                  map_width: int,
                  ) -> None:
         self.body_coords = [
-            [2, 5],  # head
-            [3, 5],
+            [5, 5],  # head
             [4, 5],
-            [5, 5]
+            [3, 5],
+            [2, 5]
         ]
         # center_y = map_height // 2
         # center_x = map_width // 2

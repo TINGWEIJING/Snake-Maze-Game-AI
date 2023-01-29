@@ -50,6 +50,9 @@ class DistanceController:
 
         return min_score_direction
 
+    def post_processing(self):
+        pass
+
     def reset(self, game_state: GameState, snake_player: SnakePlayer = None):
         self.game_state = game_state
         self.snake_player = snake_player if snake_player != None else game_state.snake_player
