@@ -70,6 +70,9 @@ class GameGUI:
             self.game_state.spawn_fruit()
             is_game_over = self.game_state.check_game_over()
 
+            # * Post Trace
+            self.controller.post_processing()
+
             # * Rendering
             self.render()
 

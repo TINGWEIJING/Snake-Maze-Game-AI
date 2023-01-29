@@ -36,7 +36,7 @@ def get_parser():
                         )
     parser.add_argument("--model_file",
                         type=str,
-                        default="./model/2023_01_12_172229.pt",
+                        default="./model/u_map_45.pt",
                         )
     parser.add_argument("--rounds",
                         type=int,
